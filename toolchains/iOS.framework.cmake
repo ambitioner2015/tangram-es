@@ -27,7 +27,8 @@ if(${IOS_PLATFORM} STREQUAL "SIMULATOR")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mios-simulator-version-min=6.0")
     set(ARCH "i386 x86_64")
 else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fembed-bitcode")
+    set(EXTERNAL_CXX_FLAGS "-fembed-bitcode")
     set(ARCH "armv7 armv7s arm64")
 endif()
 
@@ -65,7 +66,6 @@ set(HEADERS
     ${PROJECT_SOURCE_DIR}/ios/src/TGFontConverter.h
     ${FRAMEWORK_HEADERS})
 
-# add_bundle_resources(RESOURCES "${PROJECT_SOURCE_DIR}/scenes/fonts" "./fonts")
 add_bundle_resources(RESOURCES "${PROJECT_SOURCE_DIR}/ios/framework/Modules" "./Modules")
 
 add_library(${FRAMEWORK_NAME} SHARED ${SOURCES} ${HEADERS} ${RESOURCES})
@@ -90,7 +90,18 @@ set_xcode_property(${FRAMEWORK_NAME} CODE_SIGNING_REQUIRED "NO")
 set_xcode_property(${FRAMEWORK_NAME} CODE_SIGN_ENTITLEMENTS "")
 set_xcode_property(${FRAMEWORK_NAME} CODE_SIGNING_ALLOWED "NO")
 
-set_xcode_property(${FRAMEWORK_NAME} ENABLE_BITCODE "YES")
+#if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
+#    set_xcode_property(${EXECUTABLE_NAME} GCC_GENERATE_DEBUGGING_SYMBOLS NO)
+#else()
+#    set_xcode_property(${EXECUTABLE_NAME} GCC_GENERATE_DEBUGGING_SYMBOLS YES)
+#endif()
+
+if(${IOS_PLATFORM} STREQUAL "SIMULATOR")
+else()
+    set_xcode_property(${FRAMEWORK_NAME} ENABLE_BITCODE "YES")
+    set_xcode_property(${FRAMEWORK_NAME} BITCODE_GENERATION_MODE bitcode)
+endif()
+
 set_xcode_property(${FRAMEWORK_NAME} SUPPORTED_PLATFORMS "iphonesimulator iphoneos")
 set_xcode_property(${FRAMEWORK_NAME} ONLY_ACTIVE_ARCH "NO")
 set_xcode_property(${FRAMEWORK_NAME} VALID_ARCHS "${ARCH}")
